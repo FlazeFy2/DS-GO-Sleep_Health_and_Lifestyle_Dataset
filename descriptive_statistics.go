@@ -8,7 +8,10 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 )
+
+// Desciptive Statistic - Count the most words in founded in every cell defined
 
 // Descriptive Statistic - Find Mean, Modus, Median
 func findMean(values []float64) float64 {
@@ -78,6 +81,32 @@ func findStandardDeviance(val float64) float64 {
 	return math.Round(val*shift) / shift
 }
 
+func countWordFrequencies(records [][]string, columnIndex int) map[string]int {
+	wordCounts := make(map[string]int)
+
+	for _, record := range records {
+		if len(record) > columnIndex {
+			word := strings.ToLower(strings.TrimSpace(record[columnIndex]))
+			wordCounts[word]++
+		}
+	}
+
+	return wordCounts
+}
+func findMostFrequentWord(wordCounts map[string]int) (string, int) {
+	var mostFrequentWord string
+	maxCount := 0
+
+	for word, count := range wordCounts {
+		if count > maxCount {
+			mostFrequentWord = word
+			maxCount = count
+		}
+	}
+
+	return mostFrequentWord, maxCount
+}
+
 func main() {
 	// Read CSV
 	file, err := os.Open("Sleep_health_and_lifestyle_dataset.csv")
@@ -136,5 +165,28 @@ func main() {
 		fmt.Printf("Variance : %.2f\n", variance)
 		std := findStandardDeviance(variance)
 		fmt.Printf("Standard Deviance : %.2f\n", std)
+	}
+
+	// Desciptive Statistic - Count the most words in founded in every cell defined
+	target_col_2 := []string{"Gender", "BMI Category", "Sleep Disorder"}
+
+	for _, colName := range target_col_2 {
+		columnIndex := -1
+		for i, header := range headers {
+			if header == colName {
+				columnIndex = i
+				break
+			}
+		}
+
+		if columnIndex == -1 {
+			fmt.Printf("Column '%s' not found in the CSV file\n", colName)
+			continue
+		}
+
+		wordCounts := countWordFrequencies(records[1:], columnIndex)
+		mostFrequentWord, maxCount := findMostFrequentWord(wordCounts)
+
+		fmt.Printf("For column '%s', most frequent word: '%s' with %d occurrences\n", colName, mostFrequentWord, maxCount)
 	}
 }
